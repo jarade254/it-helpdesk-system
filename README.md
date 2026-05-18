@@ -1,33 +1,45 @@
-# 🖥️ IT Support Dashboard
+# 🖥️ IT Helpdesk System
 
-A full-stack IT support dashboard built using:
+A full-stack IT support ticket system built with Node.js, Express, SQLite, and vanilla JavaScript.
 
-- Node.js
-- Express.js
-- SQLite
-- HTML/CSS/JavaScript
+---
 
 ## 🚀 Features
 
 - Create support tickets
-- View all tickets
-- Close tickets
+- View all tickets in real-time
+- Close tickets (mark as resolved)
 - Delete tickets
-- SQLite database storage
+- Persistent SQLite database
 - REST API backend
 
-## 📦 Technologies Used
+---
+
+## 🛠️ Tech Stack
 
 - Node.js
-- Express
+- Express.js
 - SQLite3
-- HTML
-- CSS
-- JavaScript
+- HTML, CSS, JavaScript
 
-## ▶️ Run Project
+---
 
-Install dependencies:
+## 📡 API Endpoints
+
+- GET /api/tickets → Get all tickets
+- POST /api/tickets → Create ticket
+- PUT /api/tickets/:id → Close ticket
+- DELETE /api/tickets/:id → Delete ticket
+
+---
+
+## ▶️ Run Locally
 
 ```bash
 npm install
+node server.js
+---
+
+## 👨‍💻 Author
+
+Built by Jared Tonui as a full-stack learning project.
