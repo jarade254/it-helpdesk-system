@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IT Support Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .add-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .close-btn {
+            background: green;
+            color: white;
+        }
+
+        .delete-btn {
+            background: red;
+            color: white;
+        }
+
+        .ticket {
+            background: #f9f9f9;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border-left: 5px solid #007bff;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🖥️ IT Support Dashboard</h1>
+
+    <h3>Create Ticket</h3>
+
+    <input id="title" placeholder="Enter issue..." />
+    <button class="add-btn" onclick="createTicket()">
+        Add Ticket
+    </button>
+
+    <hr>
+
+    <h3>Support Tickets</h3>
+
+    <div id="list"></div>
+
+</div>
+
+<script>
+
+// LOAD TICKETS
+async function loadTickets() {
+
+    const res = await fetch("http://localhost:3000/api/tickets");
+    const data = await res.json();
+
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    data.forEach(ticket => {
+
+        const div = document.createElement("div");
+        div.className = "ticket";
+
+        div.innerHTML = `
+            <p>
+                <strong>#${ticket.id}</strong> - ${ticket.title}
+            </p>
+
+            <p class="status">
+                Status: ${ticket.status}
+            </p>
+
+            <button class="close-btn"
+                onclick="closeTicket(${ticket.id})">
+                Close
+            </button>
+
+            <button class="delete-btn"
+                onclick="deleteTicket(${ticket.id})">
+                Delete
+            </button>
+        `;
+
+        list.appendChild(div);
+
+    });
+
+}
+
+// CREATE TICKET
+async function createTicket() {
+
+    const title = document.getElementById("title").value;
+
+    if (!title) {
+        alert("Please enter a ticket title");
+        return;
+    }
+
+    await fetch("http://localhost:3000/api/tickets", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title })
+    });
+
+    document.getElementById("title").value = "";
+
+    loadTickets();
+}
+
+// CLOSE TICKET
+async function closeTicket(id) {
+
+    await fetch(`http://localhost:3000/api/tickets/${id}`, {
+        method: "PUT"
+    });
+
+    loadTickets();
+}
+
+// DELETE TICKET
+async function deleteTicket(id) {
+
+    await fetch(`http://localhost:3000/api/tickets/${id}`, {
+        method: "DELETE"
+    });
+
+    loadTickets();
+}
+
+// AUTO LOAD
+loadTickets();
+
+</script>
+
+</body>
+</html>
