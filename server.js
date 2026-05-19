@@ -4,14 +4,16 @@ const path = require("path");
 
 const app = express();
 
-// IMPORTANT: for deployment (Render) + local
+// PORT for Railway / local
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static(__dirname));
 
-// Database
-const db = new sqlite3.Database("tickets.db");
+// Serve frontend files
+app.use(express.static(path.join(__dirname)));
+
+// Database (fixed path for deployment safety)
+const db = new sqlite3.Database(path.join(__dirname, "tickets.db"));
 
 // Create table if not exists
 db.run(`
@@ -91,12 +93,17 @@ app.delete("/api/tickets/:id", (req, res) => {
   );
 });
 
-// Serve frontend
+// Serve frontend homepage
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// START SERVER
+// Error logging (important for Railway debugging)
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+});
+
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
