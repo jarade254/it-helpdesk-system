@@ -1,37 +1,35 @@
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
 const path = require("path");
 
 const app = express();
 
-// PORT for Railway / local
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(express.static(__dirname));
 
-// Serve frontend files
-app.use(express.static(path.join(__dirname)));
+const dbPath = path.join(__dirname, "tickets.json");
 
-// Database (fixed path for deployment safety)
-const db = new sqlite3.Database(path.join(__dirname, "tickets.db"));
+// Read tickets
+function readTickets() {
+  if (!fs.existsSync(dbPath)) {
+    fs.writeFileSync(dbPath, "[]");
+  }
 
-// Create table if not exists
-db.run(`
-  CREATE TABLE IF NOT EXISTS tickets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT,
-    status TEXT DEFAULT 'open'
-  )
-`);
+  const data = fs.readFileSync(dbPath);
+  return JSON.parse(data);
+}
+
+// Save tickets
+function saveTickets(tickets) {
+  fs.writeFileSync(dbPath, JSON.stringify(tickets, null, 2));
+}
 
 // GET all tickets
 app.get("/api/tickets", (req, res) => {
-  db.all("SELECT * FROM tickets", [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(rows);
-  });
+  const tickets = readTickets();
+  res.json(tickets);
 });
 
 // CREATE ticket
@@ -42,65 +40,55 @@ app.post("/api/tickets", (req, res) => {
     return res.status(400).json({ error: "Title is required" });
   }
 
-  db.run(
-    "INSERT INTO tickets (title, status) VALUES (?, 'open')",
-    [title],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
+  const tickets = readTickets();
 
-      res.json({
-        id: this.lastID,
-        title,
-        status: "open"
-      });
-    }
-  );
+  const newTicket = {
+    id: Date.now(),
+    title,
+    status: "open"
+  };
+
+  tickets.push(newTicket);
+  saveTickets(tickets);
+
+  res.json(newTicket);
 });
 
 // CLOSE ticket
 app.put("/api/tickets/:id", (req, res) => {
-  const id = req.params.id;
+  const id = Number(req.params.id);
 
-  db.run(
-    "UPDATE tickets SET status = 'closed' WHERE id = ?",
-    [id],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
+  const tickets = readTickets();
 
-      res.json({ message: "Ticket closed" });
-    }
-  );
+  const ticket = tickets.find(t => t.id === id);
+
+  if (!ticket) {
+    return res.status(404).json({ error: "Ticket not found" });
+  }
+
+  ticket.status = "closed";
+
+  saveTickets(tickets);
+
+  res.json({ message: "Ticket closed" });
 });
 
 // DELETE ticket
 app.delete("/api/tickets/:id", (req, res) => {
-  const id = req.params.id;
+  const id = Number(req.params.id);
 
-  db.run(
-    "DELETE FROM tickets WHERE id = ?",
-    [id],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
+  let tickets = readTickets();
 
-      res.json({ message: "Ticket deleted" });
-    }
-  );
+  tickets = tickets.filter(t => t.id !== id);
+
+  saveTickets(tickets);
+
+  res.json({ message: "Ticket deleted" });
 });
 
-// Serve frontend homepage
+// Homepage
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// Error logging (important for Railway debugging)
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
 });
 
 // Start server
