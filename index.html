@@ -93,7 +93,7 @@
 // LOAD TICKETS
 async function loadTickets() {
 
-    const res = await fetch("http://localhost:3000/api/tickets");
+    const res = await fetch("/api/tickets");
     const data = await res.json();
 
     const list = document.getElementById("list");
@@ -140,7 +140,7 @@ async function createTicket() {
         return;
     }
 
-    await fetch("http://localhost:3000/api/tickets", {
+    await fetch("/api/tickets", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -156,7 +156,7 @@ async function createTicket() {
 // CLOSE TICKET
 async function closeTicket(id) {
 
-    await fetch(`http://localhost:3000/api/tickets/${id}`, {
+    await fetch(`/api/tickets/${id}`, {
         method: "PUT"
     });
 
@@ -166,7 +166,7 @@ async function closeTicket(id) {
 // DELETE TICKET
 async function deleteTicket(id) {
 
-    await fetch(`http://localhost:3000/api/tickets/${id}`, {
+    await fetch(`/api/tickets/${id}`, {
         method: "DELETE"
     });
 
