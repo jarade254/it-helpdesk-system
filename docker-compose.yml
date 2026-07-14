@@ -1,0 +1,12 @@
+﻿services:
+  helpdesk:
+    build: .
+    image: it-helpdesk-system:latest
+    container_name: it-helpdesk-system
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    volumes:
+      - ./tickets.json:/usr/src/app/tickets.json
+    restart: unless-stopped
